@@ -1,0 +1,7 @@
+Makefile
+parser.c
+parser.h
+scanner.c
+test-basic-nr
+OUTPUT
+Makefile.in

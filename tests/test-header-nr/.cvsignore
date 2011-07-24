@@ -1,0 +1,7 @@
+Makefile
+Makefile.in
+scanner.c
+scanner.h
+test-header-nr
+
+OUTPUT

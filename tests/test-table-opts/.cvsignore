@@ -1,0 +1,11 @@
+Makefile
+Makefile.in
+parser.c
+parser.h
+TEMPLATE
+OUTPUT
+.deps
+test-opt-*
+test-ser-*
+test-ver-*
+*.tables
