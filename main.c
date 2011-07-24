@@ -91,7 +91,7 @@ int    *base, *def, *nultrans, NUL_ec, tblend, firstfree, **dss, *dfasiz;
 union dfaacc_union *dfaacc;
 int    *accsiz, *dhash, numas;
 int     numsnpairs, jambase, jamstate;
-int     lastccl, *cclmap, *ccllen, *cclng, cclreuse;
+int     lastccl, *cclmap, *ccllen, *cclng;
 int     current_maxccls, current_max_ccl_tbl_size;
 Char   *ccltbl;
 char    nmstr[MAXLINE];
@@ -852,10 +852,10 @@ void flexend (exit_status)
 		else
 			fprintf (stderr,
 				 _
-				 ("  %d/%d character classes needed %d/%d words of storage, %d reused\n"),
+				 ("  %d/%d character classes needed %d/%d words of storage\n"),
 				 lastccl, current_maxccls,
 				 cclmap[lastccl] + ccllen[lastccl],
-				 current_max_ccl_tbl_size, cclreuse);
+				 current_max_ccl_tbl_size);
 
 		fprintf (stderr, _("  %d state/nextstate pairs created\n"),
 			 numsnpairs);
