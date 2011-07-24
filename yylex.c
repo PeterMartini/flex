@@ -194,6 +194,14 @@ int     yylex ()
 			fprintf (stderr, "%s", yytext);
 			break;
 
+			case CCL_OP_UNION:
+				fprintf (stderr, "{+}", yytext);
+				break;
+
+			case CCL_OP_DIFF:
+				fprintf (stderr, "{-}", yytext);
+				break;
+
 		case 0:
 			fprintf (stderr, _("End Marker\n"));
 			break;
