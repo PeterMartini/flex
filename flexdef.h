@@ -639,13 +639,12 @@ extern int end_of_buffer_state;
  * cclmap - maps a ccl index to its set pointer
  * ccllen - gives the length of a ccl
  * cclng - true for a given ccl if the ccl is negated
- * cclreuse - counts how many times a ccl is re-used
  * current_max_ccl_tbl_size - current limit on number of characters needed
  *	to represent the unique ccl's
  * ccltbl - holds the characters in each ccl - indexed by cclmap
  */
 
-extern int lastccl, *cclmap, *ccllen, *cclng, cclreuse;
+extern int lastccl, *cclmap, *ccllen, *cclng;
 extern int current_maxccls, current_max_ccl_tbl_size;
 extern Char *ccltbl;
 
@@ -1047,12 +1046,6 @@ extern int yywrap PROTO ((void));
 
 
 /* from file sym.c */
-
-/* Save the text of a character class. */
-extern void cclinstal PROTO ((Char[], int));
-
-/* Lookup the number associated with character class. */
-extern int ccllookup PROTO ((Char[]));
 
 extern void ndinstal PROTO ((const char *, Char[]));	/* install a name definition */
 extern Char *ndlookup PROTO ((const char *));	/* lookup a name definition */

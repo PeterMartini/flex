@@ -1,6 +1,6 @@
 /* parse.y - parser for flex input */
 
-%token CHAR NUMBER SECTEND SCDECL XSCDECL NAME PREVCCL EOF_OP
+%token CHAR NUMBER SECTEND SCDECL XSCDECL NAME EOF_OP
 %token OPTION_OP OPT_OUTFILE OPT_PREFIX OPT_YYCLASS OPT_HEADER OPT_EXTRA_TYPE
 %token OPT_TABLES
 
@@ -733,16 +733,6 @@ singleton	:  singleton '*'
 				mkeccl( ccltbl + cclmap[$1], ccllen[$1],
 					nextecm, ecgroup, csize, csize );
 
-			++rulelen;
-
-			if (ccl_has_nl[$1])
-				rule_has_nl[num_rules] = true;
-
-			$$ = mkstate( -$1 );
-			}
-
-		|  PREVCCL
-			{
 			++rulelen;
 
 			if (ccl_has_nl[$1])
