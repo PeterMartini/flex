@@ -612,10 +612,11 @@ int myctoi (array)
 
 /* myesc - return character corresponding to escape sequence */
 
-Char myesc (array)
+int myesc (array)
      Char array[];
 {
-	Char    c, esc_char;
+	Char    c;
+	int esc_char;
 
 	switch (array[1]) {
 	case 'b':

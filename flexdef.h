@@ -929,7 +929,7 @@ extern void mkdata PROTO ((int));	/* generate a data statement */
 extern int myctoi PROTO ((const char *));
 
 /* Return character corresponding to escape sequence. */
-extern Char myesc PROTO ((Char[]));
+extern int myesc PROTO ((Char[]));
 
 /* Convert an octal digit string to an integer value. */
 extern int otoi PROTO ((Char[]));

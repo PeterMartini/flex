@@ -948,6 +948,14 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
 
 <SECT2,QUOTE,FIRSTCCL,CCL>{ESCSEQ}	{
 			yylval = myesc( (Char *) yytext );
+			int tmpval = myesc( (Char *) yytext );
+			if(tmpval > csize)
+				{
+				format_synerr( _( "Escape sequence %s overflows csize" ), yytext );
+				yyterminate();
+				}
+			else
+				yylval = tmpval;
 
 			if ( YY_START == FIRSTCCL )
 				BEGIN(CCL);
