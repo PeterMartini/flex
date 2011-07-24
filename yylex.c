@@ -165,10 +165,6 @@ int     yylex ()
 			fprintf (stderr, "%d", yylval);
 			break;
 
-		case PREVCCL:
-			fprintf (stderr, "[%d]", yylval);
-			break;
-
 		case EOF_OP:
 			fprintf (stderr, "<<EOF>>");
 			break;

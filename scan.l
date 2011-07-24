@@ -619,38 +619,10 @@ M4QEND      "]]"
 			   FLEX_EXIT(EXIT_FAILURE);
 			 }
 
-			/* Check to see if we've already encountered this
-			 * ccl.
-			 */
-			if (0 /* <--- This "0" effectively disables the reuse of a
-                   * character class (purely based on its source text).
-                   * The reason it was disabled is so yacc/bison can parse
-                   * ccl operations, such as ccl difference and union.
-                   */
-                &&  (cclval = ccllookup( (Char *) nmstr )) != 0 )
-				{
-				if ( input() != ']' )
-					synerr( _( "bad character class" ) );
+			yyless( 1 );
 
-				yylval = cclval;
-				++cclreuse;
-				return PREVCCL;
-				}
-			else
-				{
-				/* We fudge a bit.  We know that this ccl will
-				 * soon be numbered as lastccl + 1 by cclinit.
-				 */
-				cclinstal( (Char *) nmstr, lastccl + 1 );
-
-				/* Push back everything but the leading bracket
-				 * so the ccl can be rescanned.
-				 */
-				yyless( 1 );
-
-				BEGIN(FIRSTCCL);
-				return '[';
-				}
+			BEGIN(FIRSTCCL);
+			return '[';
 			}
     "{-}"       return CCL_OP_DIFF;
     "{+}"       return CCL_OP_UNION;
