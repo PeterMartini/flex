@@ -117,33 +117,6 @@ static int addsym (sym, str_def, int_def, table, table_size)
 }
 
 
-/* cclinstal - save the text of a character class */
-
-void    cclinstal (ccltxt, cclnum)
-     Char    ccltxt[];
-     int     cclnum;
-{
-	/* We don't bother checking the return status because we are not
-	 * called unless the symbol is new.
-	 */
-
-	(void) addsym ((char *) copy_unsigned_string (ccltxt),
-		       (char *) 0, cclnum, ccltab, CCL_HASH_SIZE);
-}
-
-
-/* ccllookup - lookup the number associated with character class text
- *
- * Returns 0 if there's no CCL associated with the text.
- */
-
-int     ccllookup (ccltxt)
-     Char    ccltxt[];
-{
-	return findsym ((char *) ccltxt, ccltab, CCL_HASH_SIZE)->int_val;
-}
-
-
 /* findsym - find symbol in symbol table */
 
 static struct hash_entry *findsym (sym, table, table_size)

@@ -1048,12 +1048,6 @@ extern int yywrap PROTO ((void));
 
 /* from file sym.c */
 
-/* Save the text of a character class. */
-extern void cclinstal PROTO ((Char[], int));
-
-/* Lookup the number associated with character class. */
-extern int ccllookup PROTO ((Char[]));
-
 extern void ndinstal PROTO ((const char *, Char[]));	/* install a name definition */
 extern Char *ndlookup PROTO ((const char *));	/* lookup a name definition */
 
