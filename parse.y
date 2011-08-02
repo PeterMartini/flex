@@ -1075,3 +1075,5 @@ void yyerror( msg )
 const char *msg;
 	{
 	}
+
+/* vim:set expandtab cindent tabstop=4 softtabstop=4 shiftwidth=4 textwidth=0: */
