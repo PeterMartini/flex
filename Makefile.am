@@ -64,7 +64,9 @@ flex_SOURCES = \
 	tables.c \
 	tables_shared.c \
 	filter.c \
-	regex.c
+	regex.c \
+	charclass.c \
+	unicode.c
 
 libfl_a_SOURCES = \
 	libmain.c \
@@ -85,7 +87,9 @@ noinst_HEADERS = \
 	options.h \
 	scanopt.h \
 	tables.h \
-	tables_shared.h
+	tables_shared.h \
+	charclass.h \
+	unicode.h
 
 include_HEADERS = \
 	FlexLexer.h
@@ -130,21 +134,25 @@ skel.c: flex.skl mkskel.sh flexint.h tables_shared.h
 
 # Explicitly describe dependencies.
 # You can recreate this with `gcc -I. -MM *.c'
+
 buf.o: buf.c flexdef.h flexint.h
 ccl.o: ccl.c flexdef.h flexint.h
+charclass.o: charclass.c flexdef.h flexint.h charclass.h unicode.h
 dfa.o: dfa.c flexdef.h flexint.h tables.h tables_shared.h
 ecs.o: ecs.c flexdef.h flexint.h
-scanflags.o: scanflags.c flexdef.h flexint.h
+filter.o: filter.c flexdef.h flexint.h
 gen.o: gen.c flexdef.h flexint.h tables.h tables_shared.h
 libmain.o: libmain.c
 libyywrap.o: libyywrap.c
-main.o: main.c flexdef.h flexint.h version.h options.h scanopt.h \
- tables.h tables_shared.h
+main.o: main.c flexdef.h flexint.h version.h options.h scanopt.h tables.h \
+ tables_shared.h
 misc.o: misc.c flexdef.h flexint.h tables.h tables_shared.h
 nfa.o: nfa.c flexdef.h flexint.h
 options.o: options.c options.h scanopt.h flexdef.h flexint.h
-parse.o: parse.c flexdef.h flexint.h tables.h tables_shared.h
-scan.o: scan.c flexdef.h flexint.h parse.h
+parse.o: parse.c flexdef.h flexint.h tables.h tables_shared.h unicode.h
+regex.o: regex.c flexdef.h flexint.h
+scan.o: scan.c flexdef.h flexint.h parse.h unicode.h
+scanflags.o: scanflags.c flexdef.h flexint.h
 scanopt.o: scanopt.c flexdef.h flexint.h scanopt.h
 skel.o: skel.c flexdef.h flexint.h
 sym.o: sym.c flexdef.h flexint.h
@@ -152,8 +160,8 @@ tables.o: tables.c flexdef.h flexint.h tables.h tables_shared.h
 tables_shared.o: tables_shared.c flexdef.h flexint.h tables.h \
  tables_shared.h
 tblcmp.o: tblcmp.c flexdef.h flexint.h
+unicode.o: unicode.c flexdef.h flexint.h unicode.h
 yylex.o: yylex.c flexdef.h flexint.h parse.h
-filter.o: filter.c flexdef.h flexint.h
 
 # Create the ChangeLog, but only if we're inside a cvs working directory
 
@@ -174,6 +182,8 @@ ChangeLog: $(srcdir)/tools/cvsauthors $(srcdir)/tools/cvs2cl.pl
 indentfiles = \
 	buf.c \
 	ccl.c \
+	charclass.c \
+	charclass.h \
 	dfa.c \
 	ecs.c \
 	scanflags.c \
@@ -195,7 +205,9 @@ indentfiles = \
 	tables.h \
 	tables_shared.c \
 	tables_shared.h \
-	tblcmp.c
+	tblcmp.c \
+	unicode.c \
+	unicode.h
 
 indent:
 	if [ -f .indent.pro ] ; then \

@@ -1197,13 +1197,25 @@ extern size_t _sf_top_ix, _sf_max; /**< stack of scanner flags. */
 #define _SF_CASE_INS   0x0001
 #define _SF_DOT_ALL    0x0002
 #define _SF_SKIP_WS    0x0004
+#define _SF_UTF8       0x0008
+#define _SF_UTF16      0x0010
+#define _SF_UNICODE    0x0018
 #define sf_top()           (_sf_stk[_sf_top_ix])
 #define sf_case_ins()      (sf_top() & _SF_CASE_INS)
 #define sf_dot_all()       (sf_top() & _SF_DOT_ALL)
 #define sf_skip_ws()       (sf_top() & _SF_SKIP_WS)
+#define sf_utf8()          (sf_top() & _SF_UTF8)
+#define sf_utf16()         (sf_top() & _SF_UTF16)
+#define sf_unicode()       (sf_top() & _SF_UNICODE)
 #define sf_set_case_ins(X)      ((X) ? (sf_top() |= _SF_CASE_INS) : (sf_top() &= ~_SF_CASE_INS))
 #define sf_set_dot_all(X)       ((X) ? (sf_top() |= _SF_DOT_ALL)  : (sf_top() &= ~_SF_DOT_ALL))
 #define sf_set_skip_ws(X)       ((X) ? (sf_top() |= _SF_SKIP_WS)  : (sf_top() &= ~_SF_SKIP_WS))
+#define sf_set_utf(X)           switch(X) { \
+                                     case 0:  (sf_top() &= (~_SF_UNICODE)); break; \
+                                     case 8:  (sf_top() |= (_SF_UTF8 & ~_SF_UTF16)); break; \
+                                     case 16: (sf_top() |= (_SF_UTF16 & ~_SF_UTF8)); break; \
+                                     default: flexfatal("Invalid UTF mode"); break; \
+                                 }
 extern void sf_init(void);
 extern void sf_push(void);
 extern void sf_pop(void);

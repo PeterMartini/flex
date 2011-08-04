@@ -65,9 +65,10 @@
 
 #include "flexdef.h"
 #include "tables.h"
+#include "unicode.h"
 
-int pat, scnum, eps, headcnt, trailcnt, lastchar, i, rulelen;
-int trlcontxt, xcluflg, currccl, cclsorted, varlength, variable_trail_rule;
+int pat, scnum, eps, headcnt, trailcnt, i, rulelen;
+int trlcontxt, xcluflg, varlength, variable_trail_rule;
 
 int *scon_stk;
 int scon_stk_ptr;
@@ -84,21 +85,23 @@ int previous_continued_action;	/* whether the previous rule's action was '|' */
 	}while(0)
 
 /* Expand a POSIX character class expression. */
-#define CCL_EXPR(func) \
+#define CCL_EXPR(target,func) \
 	do{ \
 	int c; \
+	target = charclass_init(); \
 	for ( c = 0; c < csize; ++c ) \
 		if ( isascii(c) && func(c) ) \
-			ccladd( currccl, c ); \
+			charclass_add( target, c, c ); \
 	}while(0)
 
 /* negated class */
-#define CCL_NEG_EXPR(func) \
+#define CCL_NEG_EXPR(target,func) \
 	do{ \
 	int c; \
+	target = charclass_init(); \
 	for ( c = 0; c < csize; ++c ) \
 		if ( !func(c) ) \
-			ccladd( currccl, c ); \
+			charclass_add( target, c, c ); \
 	}while(0)
 
 /* While POSIX defines isblank(), it's not ANSI C. */
@@ -689,56 +692,63 @@ singleton	:  singleton '*'
 
 		|  '.'
 			{
-			if ( ! madeany )
+			if ( ! madeany && ! sf_unicode() )
 				{
 				/* Create the '.' character class. */
-                    ccldot = cclinit();
-                    ccladd( ccldot, '\n' );
-                    cclnegate( ccldot );
+					ccldot = cclinit();
+					ccladd( ccldot, '\n' );
+					cclnegate( ccldot );
 
-                    if ( useecs )
-                        mkeccl( ccltbl + cclmap[ccldot],
-                            ccllen[ccldot], nextecm,
-                            ecgroup, csize, csize );
+					if ( useecs )
+						mkeccl( ccltbl + cclmap[ccldot],
+							ccllen[ccldot], nextecm,
+							ecgroup, csize, csize );
 
 				/* Create the (?s:'.') character class. */
-                    cclany = cclinit();
-                    cclnegate( cclany );
+					cclany = cclinit();
+					cclnegate( cclany );
 
-                    if ( useecs )
-                        mkeccl( ccltbl + cclmap[cclany],
-                            ccllen[cclany], nextecm,
-                            ecgroup, csize, csize );
+					if ( useecs )
+						mkeccl( ccltbl + cclmap[cclany],
+							ccllen[cclany], nextecm,
+							ecgroup, csize, csize );
 
 				madeany = true;
 				}
 
-			++rulelen;
-
-            if (sf_dot_all())
-                $$ = mkstate( -cclany );
-            else
-                $$ = mkstate( -ccldot );
+			if (sf_unicode())
+				{
+				varlength = true;
+				if (sf_dot_all())
+					$$ = mkrange(UNICODE_MIN, UNICODE_MAX, UTF8);
+				else
+					{
+					int before = mkrange(UNICODE_MIN, '\n' - 1, UTF8);
+					int after = mkrange('\n' + 1, UNICODE_MAX, UTF8);
+					$$ = mkor(before,after);
+					}
+				}
+			else
+				{
+				++rulelen;
+				if (sf_dot_all())
+					$$ = mkstate( -cclany );
+				else
+					$$ = mkstate( -ccldot );
+				}
 			}
-
 		|  fullccl
 			{
-				/* Sort characters for fast searching.  We
-				 * use a shell sort since this list could
-				 * be large.
-				 */
-				cshell( ccltbl + cclmap[$1], ccllen[$1], true );
+			int min = charclass_minlen($1), max = charclass_maxlen($1);
+			if (min == max)
+				rulelen += min;
+			else
+				varlength = true;
 
-			if ( useecs )
-				mkeccl( ccltbl + cclmap[$1], ccllen[$1],
-					nextecm, ecgroup, csize, csize );
-
-			++rulelen;
-
-			if (ccl_has_nl[$1])
+			if (charclass_contains($1,nlch))
 				rule_has_nl[num_rules] = true;
 
-			$$ = mkstate( -$1 );
+			$$ = charclass_mkstate( $1 );
 			}
 
 		|  '"' string '"'
@@ -749,31 +759,32 @@ singleton	:  singleton '*'
 
 		|  CHAR
 			{
-			++rulelen;
+			enum encoding mode = sf_utf8() ? UTF8 : ASCII;
+
+			rulelen += codepointlen($1,mode);
 
 			if ($1 == nlch)
 				rule_has_nl[num_rules] = true;
 
-            if (sf_case_ins() && has_case($1))
-                /* create an alternation, as in (a|A) */
-                $$ = mkor (mkstate($1), mkstate(reverse_case($1)));
-            else
-                $$ = mkstate( $1 );
+			if (sf_case_ins() && has_case($1))
+				/* create an alternation, as in (a|A) */
+				$$ = mkor (mkcodepoint($1,mode), mkcodepoint(reverse_case($1),mode));
+			else
+				$$ = mkcodepoint($1,mode);
 			}
 		;
+
 fullccl:
-        fullccl CCL_OP_DIFF  braceccl  { $$ = ccl_set_diff  ($1, $3); }
-    |   fullccl CCL_OP_UNION braceccl  { $$ = ccl_set_union ($1, $3); }
+        fullccl CCL_OP_DIFF  braceccl  { $$ = charclass_set_diff  ($1, $3); }
+    |   fullccl CCL_OP_UNION braceccl  { $$ = charclass_set_union ($1, $3); }
     |   braceccl
     ;
 
 braceccl: 
-
-            '[' ccl ']' { $$ = $2; }
-
+           '[' ccl ']' { $$ = $2; }
 		|  '[' '^' ccl ']'
 			{
-			cclnegate( $3 );
+			charclass_negate( $3 );
 			$$ = $3;
 			}
 		;
@@ -812,26 +823,16 @@ ccl		:  ccl CHAR '-' CHAR
 
 			else
 				{
-				for ( i = $2; i <= $4; ++i )
-					ccladd( $1, i );
+				charclass_add( $1, $2, $4 );
 
-				/* Keep track if this ccl is staying in
-				 * alphabetical order.
-				 */
-				cclsorted = cclsorted && ($2 > lastchar);
-				lastchar = $4;
-
-                /* Do it again for upper/lowercase */
-                if (sf_case_ins() && has_case($2) && has_case($4)){
-                    $2 = reverse_case ($2);
-                    $4 = reverse_case ($4);
-                    
-                    for ( i = $2; i <= $4; ++i )
-                        ccladd( $1, i );
-
-                    cclsorted = cclsorted && ($2 > lastchar);
-                    lastchar = $4;
-                }
+				/* Do it again for upper/lowercase */
+				if (sf_case_ins() && has_case($2) && has_case($4))
+					{
+					$2 = reverse_case ($2);
+					$4 = reverse_case ($4);
+					
+					charclass_add( $1, $2, $4 );
+					}
 
 				}
 
@@ -840,80 +841,64 @@ ccl		:  ccl CHAR '-' CHAR
 
 		|  ccl CHAR
 			{
-			ccladd( $1, $2 );
-			cclsorted = cclsorted && ($2 > lastchar);
-			lastchar = $2;
+			charclass_add( $1, $2, $2 );
 
             /* Do it again for upper/lowercase */
             if (sf_case_ins() && has_case($2)){
                 $2 = reverse_case ($2);
-                ccladd ($1, $2);
-
-                cclsorted = cclsorted && ($2 > lastchar);
-                lastchar = $2;
+                charclass_add($1, $2, $2);
             }
 
 			$$ = $1;
 			}
 
-		|  ccl ccl_expr
-			{
-			/* Too hard to properly maintain cclsorted. */
-			cclsorted = false;
-			$$ = $1;
-			}
-
-		|
-			{
-			cclsorted = true;
-			lastchar = 0;
-			currccl = $$ = cclinit();
-			}
+		|  ccl ccl_expr { $$ = charclass_set_union ($1, $2); }
+		|  /* Empty */ { $$ = charclass_init(); }
 		;
 
 ccl_expr:	   
-           CCE_ALNUM	{ CCL_EXPR(isalnum); }
-		|  CCE_ALPHA	{ CCL_EXPR(isalpha); }
-		|  CCE_BLANK	{ CCL_EXPR(IS_BLANK); }
-		|  CCE_CNTRL	{ CCL_EXPR(iscntrl); }
-		|  CCE_DIGIT	{ CCL_EXPR(isdigit); }
-		|  CCE_GRAPH	{ CCL_EXPR(isgraph); }
+           CCE_ALNUM	{ CCL_EXPR($$,isalnum); }
+		|  CCE_ALPHA	{ CCL_EXPR($$,isalpha); }
+		|  CCE_BLANK	{ CCL_EXPR($$,IS_BLANK); }
+		|  CCE_CNTRL	{ CCL_EXPR($$,iscntrl); }
+		|  CCE_DIGIT	{ CCL_EXPR($$,isdigit); }
+		|  CCE_GRAPH	{ CCL_EXPR($$,isgraph); }
 		|  CCE_LOWER	{ 
-                          CCL_EXPR(islower);
+                          CCL_EXPR($$,islower);
                           if (sf_case_ins())
-                              CCL_EXPR(isupper);
+                              CCL_EXPR($$,isupper);
                         }
-		|  CCE_PRINT	{ CCL_EXPR(isprint); }
-		|  CCE_PUNCT	{ CCL_EXPR(ispunct); }
-		|  CCE_SPACE	{ CCL_EXPR(isspace); }
-		|  CCE_XDIGIT	{ CCL_EXPR(isxdigit); }
+		|  CCE_PRINT	{ CCL_EXPR($$,isprint); }
+		|  CCE_PUNCT	{ CCL_EXPR($$,ispunct); }
+		|  CCE_SPACE	{ CCL_EXPR($$,isspace); }
+		|  CCE_XDIGIT	{ CCL_EXPR($$,isxdigit); }
 		|  CCE_UPPER	{
-                    CCL_EXPR(isupper);
+                    CCL_EXPR($$,isupper);
                     if (sf_case_ins())
-                        CCL_EXPR(islower);
+                        CCL_EXPR($$,islower);
 				}
 
-        |  CCE_NEG_ALNUM	{ CCL_NEG_EXPR(isalnum); }
-		|  CCE_NEG_ALPHA	{ CCL_NEG_EXPR(isalpha); }
-		|  CCE_NEG_BLANK	{ CCL_NEG_EXPR(IS_BLANK); }
-		|  CCE_NEG_CNTRL	{ CCL_NEG_EXPR(iscntrl); }
-		|  CCE_NEG_DIGIT	{ CCL_NEG_EXPR(isdigit); }
-		|  CCE_NEG_GRAPH	{ CCL_NEG_EXPR(isgraph); }
-		|  CCE_NEG_PRINT	{ CCL_NEG_EXPR(isprint); }
-		|  CCE_NEG_PUNCT	{ CCL_NEG_EXPR(ispunct); }
-		|  CCE_NEG_SPACE	{ CCL_NEG_EXPR(isspace); }
-		|  CCE_NEG_XDIGIT	{ CCL_NEG_EXPR(isxdigit); }
+        |  CCE_NEG_ALNUM	{ CCL_NEG_EXPR($$,isalnum); }
+		|  CCE_NEG_ALPHA	{ CCL_NEG_EXPR($$,isalpha); }
+		|  CCE_NEG_BLANK	{ CCL_NEG_EXPR($$,IS_BLANK); }
+		|  CCE_NEG_CNTRL	{ CCL_NEG_EXPR($$,iscntrl); }
+		|  CCE_NEG_DIGIT	{ CCL_NEG_EXPR($$,isdigit); }
+		|  CCE_NEG_GRAPH	{ CCL_NEG_EXPR($$,isgraph); }
+		|  CCE_NEG_PRINT	{ CCL_NEG_EXPR($$,isprint); }
+		|  CCE_NEG_PUNCT	{ CCL_NEG_EXPR($$,ispunct); }
+		|  CCE_NEG_SPACE	{ CCL_NEG_EXPR($$,isspace); }
+		|  CCE_NEG_XDIGIT	{ CCL_NEG_EXPR($$,isxdigit); }
 		|  CCE_NEG_LOWER	{ 
 				if ( sf_case_ins() )
 					warn(_("[:^lower:] is ambiguous in case insensitive scanner"));
 				else
-					CCL_NEG_EXPR(islower);
+					CCL_NEG_EXPR($$,islower);
 				}
 		|  CCE_NEG_UPPER	{
 				if ( sf_case_ins() )
 					warn(_("[:^upper:] ambiguous in case insensitive scanner"));
 				else
-					CCL_NEG_EXPR(isupper);
+					CCL_NEG_EXPR($$,isupper);
 				}
 		;
 		
@@ -1076,4 +1061,4 @@ const char *msg;
 	{
 	}
 
-/* vim:set expandtab cindent tabstop=4 softtabstop=4 shiftwidth=4 textwidth=0: */
+/* vim:set cindent tabstop=4 softtabstop=4 shiftwidth=4 textwidth=0: */

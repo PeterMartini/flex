@@ -655,8 +655,10 @@ int myesc (array)
 		/* \<octal> */
 		return otoi (array + 1);
 
+	case 'u':
+	case 'U':
 	case 'x':
-		/* \x<hex> */
+		/* \x<hex>, \u<hex>{4}, \U<hex>{8} */
 		return htoi (array + 2);
 
 	default:

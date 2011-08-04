@@ -34,6 +34,7 @@
 
 #include "flexdef.h"
 #include "parse.h"
+#include "unicode.h"
 extern bool tablesverify, tablesext;
 extern int trlcontxt; /* Set in  parse.y for each rule. */
 extern const char *escaped_qstart, *escaped_qend;
@@ -117,7 +118,7 @@ NOT_NAME	[^[:alpha:]_*\n]+
 
 SCNAME		{NAME}
 
-ESCSEQ		(\\([^\n]|[0-7]{1,3}|x[[:xdigit:]]{1,2}))
+ESCSEQ		(\\([^\n]|[0-7]{1,3}|x[[:xdigit:]]{1,2}|u[[:xdigit:]]{4}|U[[:xdigit:]]{8}))
 
 FIRST_CCL_CHAR	([^\\\n]|{ESCSEQ})
 CCL_CHAR	([^\\\n\]]|{ESCSEQ})
@@ -329,8 +330,9 @@ M4QEND      "]]"
 
 	no		option_sense = ! option_sense;
 
-	7bit		csize = option_sense ? 128 : 256;
+	7bit		csize = option_sense ? 128 : 256; sf_set_utf(0);
 	8bit		csize = option_sense ? 256 : 128;
+	utf8		sf_set_utf(8); csize = 256;
 
 	align		long_align = option_sense;
 	always-interactive	{
@@ -750,12 +752,14 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
     i       sf_set_case_ins(1);
     s       sf_set_dot_all(1);
     x       sf_set_skip_ws(1);
+    u       sf_set_utf(8);
 }
 <GROUP_MINUS_PARAMS>{
     ":"     BEGIN(SECT2);
     i       sf_set_case_ins(0);
     s       sf_set_dot_all(0);
     x       sf_set_skip_ws(0);
+    u       sf_set_utf(0);
 }
 
 <FIRSTCCL>{
@@ -919,11 +923,10 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
 			}
 
 <SECT2,QUOTE,FIRSTCCL,CCL>{ESCSEQ}	{
-			yylval = myesc( (Char *) yytext );
 			int tmpval = myesc( (Char *) yytext );
-			if(tmpval > csize)
+			if ( sf_unicode() ? tmpval > UNICODE_MAX : tmpval > csize )
 				{
-				format_synerr( _( "Escape sequence %s overflows csize" ), yytext );
+				format_synerr( _( "Escape sequence %s will overflow character range" ), yytext );
 				yyterminate();
 				}
 			else

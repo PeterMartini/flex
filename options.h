@@ -42,6 +42,7 @@ enum flexopt_flag_t {
 	 * Order is not important. */
 	OPT_7BIT = 1,
 	OPT_8BIT,
+	OPT_UTF8,
 	OPT_ALIGN,
 	OPT_ALWAYS_INTERACTIVE,
 	OPT_ARRAY,
