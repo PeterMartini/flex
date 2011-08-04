@@ -899,9 +899,6 @@ extern void flexfatal PROTO ((const char *));
     }while(0)
 #endif /* ! HAVE_DECL___func__ */
 
-/* Convert a hexadecimal digit string to an integer value. */
-extern int htoi PROTO ((Char[]));
-
 /* Report an error message formatted with one integer argument. */
 extern void lerrif PROTO ((const char *, int));
 
@@ -929,9 +926,6 @@ extern int myctoi PROTO ((const char *));
 
 /* Return character corresponding to escape sequence. */
 extern int myesc PROTO ((Char[]));
-
-/* Convert an octal digit string to an integer value. */
-extern int otoi PROTO ((Char[]));
 
 /* Output a (possibly-formatted) string to the generated scanner. */
 extern void out PROTO ((const char *));

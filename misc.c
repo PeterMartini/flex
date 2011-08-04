@@ -87,6 +87,11 @@ static void sko_pop(bool* dc)
         flex_die("popped too many times in skeleton.");
 }
 
+/* Hex string to int */
+static int htoi(Char str[]);
+/* Octal string to int */
+static int otoi(Char str[]);
+
 /* Append "#define defname value\n" to the running buffer. */
 void action_define (defname, value)
      const char *defname;
@@ -615,9 +620,6 @@ int myctoi (array)
 int myesc (array)
      Char array[];
 {
-	Char    c;
-	int esc_char;
-
 	switch (array[1]) {
 	case 'b':
 		return '\b';
@@ -650,48 +652,12 @@ int myesc (array)
 	case '5':
 	case '6':
 	case '7':
-		{		/* \<octal> */
-			int     sptr = 1;
-
-			while (isascii (array[sptr]) &&
-			       isdigit (array[sptr]))
-				/* Don't increment inside loop control
-				 * because if isdigit() is a macro it might
-				 * expand into multiple increments ...
-				 */
-				++sptr;
-
-			c = array[sptr];
-			array[sptr] = '\0';
-
-			esc_char = otoi (array + 1);
-
-			array[sptr] = c;
-
-			return esc_char;
-		}
+		/* \<octal> */
+		return otoi (array + 1);
 
 	case 'x':
-		{		/* \x<hex> */
-			int     sptr = 2;
-
-			while (isascii (array[sptr]) &&
-			       isxdigit ((char) array[sptr]))
-				/* Don't increment inside loop control
-				 * because if isdigit() is a macro it might
-				 * expand into multiple increments ...
-				 */
-				++sptr;
-
-			c = array[sptr];
-			array[sptr] = '\0';
-
-			esc_char = htoi (array + 2);
-
-			array[sptr] = c;
-
-			return esc_char;
-		}
+		/* \x<hex> */
+		return htoi (array + 2);
 
 	default:
 		return array[1];
