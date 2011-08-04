@@ -187,6 +187,18 @@ int     yylex ()
 		case CCE_SPACE:
 		case CCE_UPPER:
 		case CCE_XDIGIT:
+		case CCE_NEG_ALNUM:
+		case CCE_NEG_ALPHA:
+		case CCE_NEG_BLANK:
+		case CCE_NEG_CNTRL:
+		case CCE_NEG_DIGIT:
+		case CCE_NEG_GRAPH:
+		case CCE_NEG_LOWER:
+		case CCE_NEG_PRINT:
+		case CCE_NEG_PUNCT:
+		case CCE_NEG_SPACE:
+		case CCE_NEG_UPPER:
+		case CCE_NEG_XDIGIT:
 			fprintf (stderr, "%s", yytext);
 			break;
 
