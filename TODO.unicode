@@ -1,0 +1,11 @@
+* Somehow flag '.' to handle fffe / surrogates as illegal codepoints (if desired)
+
+* Add \x \X for grapheme matching
+
+* add utf-16 support (csize == 16)
+
+* add tests / sanity checking for utf-8 + csize 7
+
+* case-insensitive needs to be much smarter
+
+* Add checks for unicode properties
