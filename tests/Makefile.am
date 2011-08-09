@@ -73,7 +73,8 @@ DIST_SUBDIRS = \
 	test-noansi-nr \
 	test-noansi-r \
 	test-table-opts \
-	test-utf8-dot
+	test-utf8-dot \
+	test-utf8-escapes
 
 SUBDIRS = \
 	test-concatenated-options \
@@ -122,7 +123,8 @@ SUBDIRS = \
 	test-noansi-r \
 	test-top \
 	test-table-opts \
-	test-utf8-dot
+	test-utf8-dot \
+	test-utf8-escapes
 
 # clean up before running the test suite so we dont test old builds of test code
 
