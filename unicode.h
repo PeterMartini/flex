@@ -64,6 +64,7 @@ static inline int codepointlen (int codepoint, enum encoding mode)
 		case ASCII: return 1;
 		case UTF8: return utf8len(codepoint);
 		default: flexfatal("Unknown mode in codepointlen");
+		         return 0; /* Silence warnings */
 	};
 }
 
