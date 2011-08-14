@@ -609,8 +609,6 @@ M4QEND      "]]"
 			}
 
 	"["({FIRST_CCL_CHAR}|{CCL_EXPR})({CCL_CHAR}|{CCL_EXPR})*	{
-			int cclval;
-
 			if(yyleng < MAXLINE)
         		 {
 			strcpy( nmstr, yytext );
