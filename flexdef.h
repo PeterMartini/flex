@@ -857,9 +857,6 @@ extern char *copy_string PROTO ((register const char *));
 /* Returns a dynamically allocated copy of a (potentially) unsigned string. */
 extern Char *copy_unsigned_string PROTO ((register Char *));
 
-/* Shell sort a character array. */
-extern void cshell PROTO ((Char[], int, int));
-
 /* Finish up a block of data declarations. */
 extern void dataend PROTO ((void));
 

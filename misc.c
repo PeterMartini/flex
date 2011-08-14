@@ -319,55 +319,6 @@ Char   *copy_unsigned_string (str)
 }
 
 
-/* cshell - shell sort a character array in increasing order
- *
- * synopsis
- *
- *   Char v[n];
- *   int n, special_case_0;
- *   cshell( v, n, special_case_0 );
- *
- * description
- *   Does a shell sort of the first n elements of array v.
- *   If special_case_0 is true, then any element equal to 0
- *   is instead assumed to have infinite weight.
- *
- * passed
- *   v - array to be sorted
- *   n - number of elements of v to be sorted
- */
-
-void cshell (v, n, special_case_0)
-     Char v[];
-     int n, special_case_0;
-{
-	int     gap, i, j, jg;
-	Char    k;
-
-	for (gap = n / 2; gap > 0; gap = gap / 2)
-		for (i = gap; i < n; ++i)
-			for (j = i - gap; j >= 0; j = j - gap) {
-				jg = j + gap;
-
-				if (special_case_0) {
-					if (v[jg] == 0)
-						break;
-
-					else if (v[j] != 0
-						 && v[j] <= v[jg])
-						break;
-				}
-
-				else if (v[j] <= v[jg])
-					break;
-
-				k = v[j];
-				v[j] = v[jg];
-				v[jg] = k;
-			}
-}
-
-
 /* dataend - finish up a block of data declarations */
 
 void dataend ()
