@@ -451,19 +451,22 @@ int charclass_mkstate (charclass * set)
 	int i = 0;
 
 	range * item = set->first;
+	bool needsnull = item->start == 0;
 	while (item) {
 		if (maxlen == 1) {
 			/* Add each possible value to the CCL, but 0 must go at the end */
 			for (i=MAX(1,item->start);i<=item->end;i++) {
 				ccladd(ccl,i);
 			}
-			if (item->start == 0)
-				ccladd(ccl,0);
 		} else 
 			/* mkor works fine with one parameter NIL */
 			state = mkor(state, mkrange(item->start,item->end,set->mode));
 
 		item = item->next;
+	}
+	/* Now add 0 if needed */
+	if (maxlen == 1 && needsnull) {
+		ccladd(ccl,0);
 	}
 
 	/* Convert the CCL to a state */
