@@ -33,6 +33,7 @@
 
 #include <ctype.h>
 #include "flexdef.h"
+#include "charclass.h"
 #include "parse.h"
 
 
@@ -125,7 +126,7 @@ int     yylex ()
 			break;
 
 		case CHAR:
-			switch (yylval) {
+			switch (yylval.number) {
 			case '<':
 			case '>':
 			case '^':
@@ -146,23 +147,23 @@ int     yylex ()
 			case '*':
 			case '+':
 			case ',':
-				fprintf (stderr, "\\%c", yylval);
+				fprintf (stderr, "\\%c", yylval.number);
 				break;
 
 			default:
-				if (!isascii (yylval) || !isprint (yylval))
+				if (!isascii (yylval.number) || !isprint (yylval.number))
 					fprintf (stderr,
 						 "\\%.3o",
-						 (unsigned int) yylval);
+						 (unsigned int) yylval.number);
 				else
-					(void) putc (yylval, stderr);
+					(void) putc (yylval.number, stderr);
 				break;
 			}
 
 			break;
 
 		case NUMBER:
-			fprintf (stderr, "%d", yylval);
+			fprintf (stderr, "%d", yylval.number);
 			break;
 
 		case EOF_OP:
@@ -218,7 +219,7 @@ int     yylex ()
 			fprintf (stderr,
 				 _
 				 ("*Something Weird* - tok: %d val: %d\n"),
-				 toktype, yylval);
+				 toktype, yylval.number);
 			break;
 		}
 	}

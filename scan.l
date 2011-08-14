@@ -33,8 +33,9 @@
 /*  PURPOSE. */
 
 #include "flexdef.h"
-#include "parse.h"
 #include "unicode.h"
+#include "charclass.h"
+#include "parse.h"
 extern bool tablesverify, tablesext;
 extern int trlcontxt; /* Set in  parse.y for each rule. */
 extern const char *escaped_qstart, *escaped_qend;
@@ -63,7 +64,7 @@ extern const char *escaped_qstart, *escaped_qend;
 	int flexscan()
 
 #define RETURNCHAR \
-	yylval = (unsigned char) yytext[0]; \
+	yylval.number = (unsigned char) yytext[0]; \
 	return CHAR;
 
 #define RETURNNAME \
@@ -813,7 +814,7 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
 
 <NUM>{
 	[[:digit:]]+	{
-			yylval = myctoi( yytext );
+			yylval.number = myctoi( yytext );
 			return NUMBER;
 			}
 
@@ -928,7 +929,7 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
 				yyterminate();
 				}
 			else
-				yylval = tmpval;
+				yylval.number = tmpval;
 
 			if ( YY_START == FIRSTCCL )
 				BEGIN(CCL);

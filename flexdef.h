@@ -726,12 +726,6 @@ void flex_free PROTO ((void *));
 	(Char *) reallocate_array( (void *) array, size, sizeof( Char ) )
 
 
-/* Used to communicate between scanner and parser.  The type should really
- * be YYSTYPE, but we can't easily get our hands on it.
- */
-extern int yylval;
-
-
 /* External functions that are cross-referenced among the flex source files. */
 
 

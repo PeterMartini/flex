@@ -1,6 +1,20 @@
 /* parse.y - parser for flex input */
+%{
+#include "charclass.h"
+%}
 
-%token CHAR NUMBER SECTEND SCDECL XSCDECL NAME EOF_OP
+%union {
+	int number;
+	charclass * charclass;
+}
+
+%type<charclass> fullccl braceccl ccl ccl_expr
+%type<number> scon_stk_ptr scon rule re re2 singleton series string
+%{
+// %type<number> sect2 flexrule scon_stk_ptr scon rule re re2 singleton series string
+%}
+
+%token<number> CHAR NUMBER SECTEND SCDECL XSCDECL NAME EOF_OP
 %token OPTION_OP OPT_OUTFILE OPT_PREFIX OPT_YYCLASS OPT_HEADER OPT_EXTRA_TYPE
 %token OPT_TABLES
 
@@ -106,14 +120,6 @@ int previous_continued_action;	/* whether the previous rule's action was '|' */
 
 /* While POSIX defines isblank(), it's not ANSI C. */
 #define IS_BLANK(c) ((c) == ' ' || (c) == '\t')
-
-/* On some over-ambitious machines, such as DEC Alpha's, the default
- * token type is "long" instead of "int"; this leads to problems with
- * declaring yylval in flexdef.h.  But so far, all the yacc's I've seen
- * wrap their definitions of YYSTYPE with "#ifndef YYSTYPE"'s, so the
- * following should ensure that the default token type is "int".
- */
-#define YYSTYPE int
 
 %}
 
