@@ -203,11 +203,11 @@ int     yylex ()
 			break;
 
 			case CCL_OP_UNION:
-				fprintf (stderr, "{+}", yytext);
+				fprintf (stderr, "{+}");
 				break;
 
 			case CCL_OP_DIFF:
-				fprintf (stderr, "{-}", yytext);
+				fprintf (stderr, "{-}");
 				break;
 
 		case 0:
