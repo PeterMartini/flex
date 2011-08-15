@@ -36,7 +36,6 @@
 /* Variables for symbol tables:
  * sctbl - start-condition symbol table
  * ndtbl - name-definition symbol table
- * ccltab - character class text symbol table
  */
 
 struct hash_entry {
@@ -50,11 +49,9 @@ typedef struct hash_entry **hash_table;
 
 #define NAME_TABLE_HASH_SIZE 101
 #define START_COND_HASH_SIZE 101
-#define CCL_HASH_SIZE 101
 
 static struct hash_entry *ndtbl[NAME_TABLE_HASH_SIZE];
 static struct hash_entry *sctbl[START_COND_HASH_SIZE];
-static struct hash_entry *ccltab[CCL_HASH_SIZE];
 
 
 /* declare functions that have forward references */
