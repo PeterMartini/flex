@@ -347,6 +347,7 @@ m4_define( [[M4_YY_INCR_LINENO]],
 
 %# Define these macros to be no-ops.
 m4_define( [[M4_YY_DECL_GUTS_VAR]], [[m4_dnl]])
+m4_define( [[M4_YY_NOOP_GUTS_VAR]], [[m4_dnl]])
 m4_define( [[YY_G]], [[($1)]])
 m4_define( [[M4_YY_PROTO_LAST_ARG]])
 m4_define( [[M4_YY_PROTO_ONLY_ARG]],  [[void]])
