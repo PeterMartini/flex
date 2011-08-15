@@ -288,6 +288,8 @@ typedef void* yyscan_t;
 
 %# Declare yyguts variable
 m4_define( [[M4_YY_DECL_GUTS_VAR]], [[struct yyguts_t * yyg = (struct yyguts_t*)yyscanner]])
+%# Perform a noop access on yyguts to prevent unused variable complains
+m4_define( [[M4_YY_NOOP_GUTS_VAR]], [[(void)yyg]])
 %# For use wherever a Global is accessed or assigned.
 m4_define( [[YY_G]], [[yyg->$1]])
 
@@ -1761,9 +1763,10 @@ m4_ifdef( [[M4_YY_USES_REJECT]],
 %endif
 {
 	register int yy_is_jam;
-    M4_YY_DECL_GUTS_VAR(); /* This var may be unused depending upon options. */
+	M4_YY_DECL_GUTS_VAR(); /* This var may be unused depending upon options. */
 %% [17.0] code to find the next state, and perhaps do backing up, goes here
 
+	M4_YY_NOOP_GUTS_VAR();
 	return yy_is_jam ? 0 : yy_current_state;
 }
 
