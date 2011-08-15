@@ -833,6 +833,9 @@ extern void usage PROTO ((void));
 /* Add a #define to the action file. */
 extern void action_define PROTO ((const char *defname, int value));
 
+/* DEPRECATED! action_m4_define is an instant fatal error */
+extern void action_m4_define PROTO ((const char *defname, const char * value));
+
 /* Add the given text to the stored actions. */
 extern void add_action PROTO ((const char *new_text));
 

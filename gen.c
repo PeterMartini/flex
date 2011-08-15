@@ -431,7 +431,7 @@ void genctbl ()
 
 /* mkecstbl - Make equivalence-class tables.  */
 
-struct yytbl_data *mkecstbl (void)
+static struct yytbl_data *mkecstbl (void)
 {
 	register int i;
 	struct yytbl_data *tbl = 0;
@@ -635,7 +635,7 @@ void gen_find_action ()
  * you should call mkecstbl() after this.
  */
 
-struct yytbl_data *mkftbl (void)
+static struct yytbl_data *mkftbl (void)
 {
 	register int i;
 	int     end_of_buffer_action = num_rules + 1;
