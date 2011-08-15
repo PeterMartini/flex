@@ -57,9 +57,6 @@ int     yytbl_write16 (struct yytbl_writer *wr, flex_uint16_t v);
 int     yytbl_write8 (struct yytbl_writer *wr, flex_uint8_t v);
 int     yytbl_writen (struct yytbl_writer *wr, void *v, flex_int32_t len);
 static flex_int32_t yytbl_data_geti (const struct yytbl_data *tbl, int i);
-static flex_int32_t yytbl_data_getijk (const struct yytbl_data *tbl, int i,
-				  int j, int k);
-
 
 /** Initialize the table writer.
  *  @param wr an uninitialized writer
@@ -327,42 +324,6 @@ int yytbl_write8 (struct yytbl_writer *wr, flex_uint8_t v)
 		return -1;
 	wr->total_written += bytes;
 	return bytes;
-}
-
-
-/** Extract data element [i][j] from array data tables. 
- * @param tbl data table
- * @param i index into higher dimension array. i should be zero for one-dimensional arrays.
- * @param j index into lower dimension array.
- * @param k index into struct, must be 0 or 1. Only valid for YYTD_ID_TRANSITION table
- * @return data[i][j + k]
- */
-static flex_int32_t yytbl_data_getijk (const struct yytbl_data *tbl, int i,
-				  int j, int k)
-{
-	flex_int32_t lo;
-
-	k %= 2;
-	lo = tbl->td_lolen;
-
-	switch (YYTDFLAGS2BYTES (tbl->td_flags)) {
-	case sizeof (flex_int8_t):
-		return ((flex_int8_t *) (tbl->td_data))[(i * lo + j) * (k + 1) +
-						   k];
-	case sizeof (flex_int16_t):
-		return ((flex_int16_t *) (tbl->td_data))[(i * lo + j) * (k +
-								    1) +
-						    k];
-	case sizeof (flex_int32_t):
-		return ((flex_int32_t *) (tbl->td_data))[(i * lo + j) * (k +
-								    1) +
-						    k];
-	default:
-		flex_die (_("invalid td_flags detected"));
-		break;
-	}
-
-	return 0;
 }
 
 /** Extract data element [i] from array data tables treated as a single flat array of integers.
