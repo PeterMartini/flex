@@ -55,7 +55,10 @@ charclass * charclass_init (void)
  */
 charclass * charclass_copy (charclass * set)
 {
+	int next = 0;
+	range * olditem, * newitem;
 	charclass * ret = flex_alloc(sizeof(charclass));
+
 	if (ret == NULL)
 		flexfatal(_("Could not allocate memory in charclass_init"));
 
@@ -63,9 +66,7 @@ charclass * charclass_copy (charclass * set)
 	ret->max_item = set->max_item;
 	ret->first = allocate_array(ret->max_item, sizeof(range));
 
-	range * olditem = set->next_item ? set->first : NULL;
-	range * newitem;
-	int next = 0;
+	olditem = set->next_item ? set->first : NULL;
 	while (olditem) {
 		newitem = &ret->first[next];
 		newitem->start = olditem->start;
@@ -100,15 +101,15 @@ void charclass_free (charclass * set)
  */
 void charclass_add (charclass * set, int start, int end)
 {
+	range * item, * newitem = NULL, *lastitem = NULL;
+
 	if (set == NULL)
 		flexfatal("charclass_add passed a null pointer");
 
 	if (start > end)
 		flexfatal(_("negative range in character class"));
 
-	range * newitem = NULL;
-	range * item = set->first;
-	range * lastitem = NULL;
+	item = set->first;
 
 	/* If this is first, set it and quit */
 	if (set->next_item == 0) {
@@ -179,18 +180,18 @@ void charclass_add (charclass * set, int start, int end)
  */
 void charclass_remove (charclass * set, int start, int end)
 {
+	range * item, * lastitem = NULL, * nextitem = NULL;
+
 	if (set == NULL)
 		flexfatal("charclass_remove passed a null pointer");
 
 	if (start > end)
 		flexfatal("negative range in charclass_remove");
 
-	range * newitem = NULL;
 	if (set->next_item == 0)
 		return;
 
-	range *item = set->first, *lastitem = NULL, *nextitem = NULL;
-
+	item = set->first;
 	while (item) {
 
 		nextitem = item->next;
@@ -256,12 +257,11 @@ void charclass_remove (charclass * set, int start, int end)
  */
 void charclass_negate (charclass * set)
 {
+	range * curitem , * nextitem;
+	int min = 1, max = sf_unicode() ? UNICODE_MAX : csize - 1;
+
 	if (set == NULL)
 		flexfatal("charclass_negate passed a null pointer");
-
-	range * curitem , * nextitem;
-	int nextstart = 0;
-	int min = 1, max = sf_unicode() ? UNICODE_MAX : csize - 1;
 
 	/* Short circuit if this is empty */
 	if (set->next_item == 0) {
@@ -323,6 +323,8 @@ void charclass_negate (charclass * set)
  */
 charclass * charclass_set_diff (charclass * set1, charclass * set2)
 {
+	range * item;
+
 	if (set1 == NULL)
 		flexfatal("charclass_set_diff passed a null pointer (set1)");
 
@@ -341,10 +343,10 @@ charclass * charclass_set_diff (charclass * set1, charclass * set2)
 	/* set2 is empty, which makes this a no-op */
 	if (set2->next_item == 0) {
 		charclass_free(set2);
-		return;
+		return NULL;
 	}
 
-	range * item = set2->first;
+	item = set2->first;
 	while (item) {
 		charclass_remove(set1, item->start, item->end);
 		if (set1->next_item == 0)
@@ -363,6 +365,8 @@ charclass * charclass_set_diff (charclass * set1, charclass * set2)
  */
 charclass * charclass_set_union (charclass * set1, charclass * set2)
 {
+	range * item;
+
 	if (set1 == NULL)
 		flexfatal("charclass_set_union passed a null pointer (set1)");
 
@@ -384,7 +388,7 @@ charclass * charclass_set_union (charclass * set1, charclass * set2)
 		return set1;
 	}
 
-	range * item = set2->first;
+	item = set2->first;
 	while (item) {
 		charclass_add(set1, item->start, item->end);
 		item = item->next;
@@ -401,13 +405,15 @@ charclass * charclass_set_union (charclass * set1, charclass * set2)
  * @return The maximum number of Chars */
 int charclass_maxlen (charclass * set)
 {
+	range * item;
+
 	if (set == NULL)
 		flexfatal("charclass_maxlen passed a null pointer");
 
 	if (set->next_item == 0)
 		flexfatal("charclass_maxlen passed an empty character class");
 
-	range * item = set->first;
+	item = set->first;
 	while (item->next)
 		item = item->next;
 
@@ -436,6 +442,10 @@ int charclass_minlen (charclass * set)
  */
 int charclass_mkstate (charclass * set)
 {
+	int maxlen, state = NIL, ccl = 0, i = 0;
+	range * item;
+	bool needsnull;
+
 	if (set == NULL)
 		flexfatal("charclass_mkstate passed a null pointer");
 
@@ -445,13 +455,12 @@ int charclass_mkstate (charclass * set)
 	/* For UTF-8 and UTF-16, a range can span multiple bytes.  If it does,
 	   we delegate state creation to child functions and or them together.
 	   Otherwise, a simple CCL will do. */
-	int maxlen = charclass_maxlen(set);
-	int state = NIL;
-	int ccl = (maxlen == 1 ? cclinit() : 0);
-	int i = 0;
+	maxlen = charclass_maxlen(set);
+	if (maxlen == 1)
+		ccl = cclinit();
 
-	range * item = set->first;
-	bool needsnull = item->start == 0;
+	item = set->first;
+	needsnull = item->start == 0;
 	while (item) {
 		if (maxlen == 1) {
 			/* Add each possible value to the CCL, but 0 must go at the end */
@@ -487,13 +496,15 @@ int charclass_mkstate (charclass * set)
  */
 extern bool charclass_contains (charclass * set, int codepoint)
 {
+	range * item;
+
 	if (set == NULL)
 		flexfatal("charclass_contains passed a null pointer");
 
 	if (set->next_item == 0)
 		flexfatal("charclass_contains passed an empty character class");
 
-	range * item = set->first;
+	item = set->first;
 	while (item) {
 		if (item->start <= codepoint && codepoint <= item->end)
 			return true;
@@ -512,6 +523,9 @@ extern bool charclass_contains (charclass * set, int codepoint)
  */
 range * next (charclass * set)
 {
+	range * block, * nextitem, * newitem;
+	int index = 0;
+
 	set->next_item++;
 
 	if (set->next_item < set->max_item)
@@ -524,11 +538,10 @@ range * next (charclass * set)
 		return &set->first[set->next_item];
 
 	set->max_item += LIST_INC;
-	range * block = allocate_array(set->max_item, sizeof(range));
+	block = allocate_array(set->max_item, sizeof(range));
 
-	int index = 0;
-	range * nextitem = set->first;
-	range * newitem = &block[0];
+	nextitem = set->first;
+	newitem = &block[0];
 	while (nextitem) {
 		newitem->start = nextitem->start;
 		newitem->end = nextitem->end;

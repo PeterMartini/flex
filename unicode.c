@@ -44,11 +44,13 @@ static int asciiccl(void);
  */
 int mkcodepoint (unsigned int codepoint, enum encoding mode)
 {
+	int state = 0;
 	switch(mode){
-		case ASCII: return mkstate(codepoint);
-		case UTF8: return mkutf8codepoint(codepoint);
-		default: flexfatal("Unknown mode in mkcodepoint");
+		case ASCII: state = mkstate(codepoint); break;
+		case UTF8: state = mkutf8codepoint(codepoint); break;
+		default: flexfatal("Unknown mode in mkcodepoint"); break;
 	};
+	return state;
 }
 
 /** Create a pattern to match a range of codepoints
@@ -58,7 +60,7 @@ int mkcodepoint (unsigned int codepoint, enum encoding mode)
  */
 int mkrange (int start, int end, enum encoding mode)
 {
-	int i = 0, ccl = 0;
+	int i = 0, ccl = 0, state = 0;
 	switch(mode){
 		case ASCII:
 			ccl = cclinit();
@@ -67,12 +69,15 @@ int mkrange (int start, int end, enum encoding mode)
 			if(start == 0)
 				ccladd(ccl,0);
 			tryecs(ccl);
-			return mkstate(-ccl);
+			state = mkstate(-ccl);
+			break;
 		case UTF8:
-			return mkutf8range(start,end);
+			state = mkutf8range(start,end);
+			break;
 		default:
 			flexfatal("Uknown mode in mkrange");
 	};
+	return state;
 }
 
 /** Create a state representing a single UTF-8 codepoint
@@ -121,6 +126,8 @@ static int mkutf8codepoint ( unsigned int num )
  */
 static int mkutf8range ( int start, int end )
 {
+	int state = 0, nextstate = 0, rangestart = 0, rangeend = 0;
+
 	if(start > end)
 	{
 		flexfatal("mkutf8range called with start > end");
@@ -136,8 +143,6 @@ static int mkutf8range ( int start, int end )
 		synerr("Invalid codepoint detected");
 		return 0;
 	}
-
-	int state = 0, nextstate = 0, rangestart = 0, rangeend = 0;
 
 	if(start < UTF8_ENDBYTE1)
 	{
@@ -268,7 +273,7 @@ static int mkutf8rangecont ( int start, int end, bool cont )
 			nextstate = mkutf8rangecont(0,top,true);
 			state = nextstate ? link_machines(state,nextstate) : state;
 
-			retstate = retstate ? retstate = mkor(retstate,state) : state;
+			retstate = retstate ? mkor(retstate,state) : state;
 		}
 
 		/* If this is a partial block or its the only full block, make a simple state */
@@ -279,7 +284,7 @@ static int mkutf8rangecont ( int start, int end, bool cont )
 
 			state = nextstate ? link_machines(state,nextstate) : state;
 
-			retstate = retstate ? retstate = mkor(retstate,state) : state;
+			retstate = retstate ? mkor(retstate,state) : state;
 		}
 
 	}

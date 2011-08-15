@@ -60,12 +60,13 @@ static inline int utf8len (int codepoint)
 
 static inline int codepointlen (int codepoint, enum encoding mode)
 {
+	int len = 0;
 	switch(mode){
-		case ASCII: return 1;
-		case UTF8: return utf8len(codepoint);
-		default: flexfatal("Unknown mode in codepointlen");
-		         return 0; /* Silence warnings */
+		case ASCII: len = 1; break;
+		case UTF8: len = utf8len(codepoint); break;
+		default: flexfatal("Unknown mode in codepointlen"); break;
 	};
+	return len;
 }
 
 static inline int utf8b1c1 (int codepoint){ return (codepoint); }
