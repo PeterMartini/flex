@@ -49,3 +49,4 @@ c++-yywrap            - test yywrap in c++ scanner
 concatenated-options  - test parsing of multiple concatenated short options
 utf8-dot              - test matching of '.' in UTF-8 mode
 utf8-escapes          - test UTF-8 mode escapes (\u, \U, \x, \[0-7]{3})
+nested-params         - test nesting of paramater groups
