@@ -24,10 +24,11 @@ done
 
 echo "$1" >> "$1"/.cvsignore
 
-sed -i '/--new-test-here--/i\
-tests/'"$1"'/Makefile' ../configure.in
+sed -i '' '/--new-test-here--/i\
+tests/'"$1"'/Makefile\
+' ../configure.in
 
-sed -i '/^\(DIST_\)\?SUBDIRS/a\
+sed -i '' '/^\(DIST_\)\?SUBDIRS/a\
 	'"$1"' \\' Makefile.am
 
-sed -i "s:TEMPLATE:$1:g" "$1"/Makefile.am
+sed -i '' "s:TEMPLATE:$1:g" "$1"/Makefile.am
