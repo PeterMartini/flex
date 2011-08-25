@@ -1,11 +1,16 @@
 * Somehow flag '.' to handle fffe / surrogates as illegal codepoints (if desired)
 
-* Add \x \X for grapheme matching
+* Flag '.' to match per grapheme rather than per codepoint
 
 * add utf-16 support (csize == 16)
 
-* add tests / sanity checking for utf-8 + csize 7
+* enforce utf-8 requiring csize 8 (for now)
 
-* case-insensitive needs to be much smarter
+* Allow utf-8 literals in the source file (ie,
+  [a-z☺] would match a-z or WHITE SMILING FACE, rather
+  than a-z, \xe2, \x98, or \xb2)
+
+* case-insensitive needs to be much smarter, including handling
+  multicharacter case folds
 
 * Add checks for unicode properties
