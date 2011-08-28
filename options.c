@@ -51,7 +51,7 @@ optspec_t flexopts[] = {
 	{"--8bit", OPT_8BIT, 0}
 	,			/* Generate 8-bit scanner. */
 	{"--utf8", OPT_UTF8, 0}
-	,			/* Encode patterns as UTF-8. */
+	,			/* Encode patterns as UTF-8. Implies --8bit. */
 	{"--align", OPT_ALIGN, 0}
 	,			/* Trade off larger tables for better memory alignment. */
 	{"--noalign", OPT_NO_ALIGN, 0}
