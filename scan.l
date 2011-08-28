@@ -751,7 +751,13 @@ nmstr[yyleng - 2 - end_is_ws] = '\0';  /* chop trailing brace */
     i       sf_set_case_ins(1);
     s       sf_set_dot_all(1);
     x       sf_set_skip_ws(1);
-    u       sf_set_utf(8);
+    u       {
+            switch(csize)
+                {
+                case 256: sf_set_utf(8); break;
+                default: synerr(_("Unicode mode requires 8bit\n")); break;
+                }
+            }
 }
 <GROUP_MINUS_PARAMS>{
     ":"     BEGIN(SECT2);
