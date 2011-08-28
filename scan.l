@@ -333,22 +333,47 @@ M4QEND      "]]"
 
 	7bit		csize = option_sense ? 128 : 256; sf_set_utf(0);
 	8bit		csize = option_sense ? 256 : 128;
-	utf8		sf_set_utf(8); csize = 256;
+	16bit		{
+				if (option_sense) {
+					csize = 65536;
+				} else {
+					synerr( _("16bit cannot be negated"));
+				}
+			}
+	utf8		{
+				if (option_sense) {
+					sf_set_utf(8);
+					csize = 256;
+				} else {
+					synerr( _("utf8 cannot be negated"));
+				}
+			}
+	utf16		{
+				if (option_sense) {
+					sf_set_utf(16);
+					csize = 65536;
+				} else {
+					synerr( _("utf16 cannot be negated"));
+				}
+			}
 
 	align		long_align = option_sense;
-	always-interactive	{
-			ACTION_M4_IFDEF( "M4""_YY_ALWAYS_INTERACTIVE", option_sense );
-            interactive = option_sense;
-			}
+
+	align		long_align = option_sense;
+	always-interactive {
+	                   ACTION_M4_IFDEF( "M4""_YY_ALWAYS_INTERACTIVE", option_sense );
+	                   interactive = option_sense;
+	                   }
 	array		yytext_is_array = option_sense;
-    ansi-definitions ansi_func_defs = option_sense;
-    ansi-prototypes  ansi_func_protos = option_sense;
+	ansi-definitions ansi_func_defs = option_sense;
+	ansi-prototypes  ansi_func_protos = option_sense;
 	backup		backing_up_report = option_sense;
 	batch		interactive = ! option_sense;
-    bison-bridge     bison_bridge_lval = option_sense;
-    bison-locations  { if((bison_bridge_lloc = option_sense))
-                            bison_bridge_lval = true;
-                     }
+	bison-bridge     bison_bridge_lval = option_sense;
+	bison-locations  {
+	                 if((bison_bridge_lloc = option_sense))
+	                       bison_bridge_lval = true;
+	                 }
 	"c++"		C_plus_plus = option_sense;
 	caseful|case-sensitive		sf_set_case_ins(!option_sense);
 	caseless|case-insensitive	sf_set_case_ins(option_sense);

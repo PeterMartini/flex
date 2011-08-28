@@ -787,11 +787,16 @@ void flexend (exit_status)
 
 		if (csize == 128)
 			putc ('7', stderr);
-		else
+		else if (csize == 256)
 			putc ('8', stderr);
+		else
+			fputs (" --16bit", stderr);
 
 		if (sf_utf8())
 			fputs (" --utf8", stderr);
+
+		if (sf_utf16())
+			fputs (" --utf16", stderr);
 
 		fprintf (stderr, " -C");
 
@@ -1209,12 +1214,21 @@ void flexinit (argc, argv)
 			break;
 
 		case OPT_8BIT:
-			csize = CSIZE;
+			csize = 256;
+			break;
+
+		case OPT_16BIT:
+			csize = 65536;
 			break;
 
 		case OPT_UTF8:
 			sf_set_utf(8);
-			csize = CSIZE;
+			csize = 256;
+			break;
+
+		case OPT_UTF16:
+			sf_set_utf(16);
+			csize = 65536;
 			break;
 
 		case OPT_ALIGN:
@@ -1836,7 +1850,9 @@ void usage ()
 		  "Scanner behavior:\n"
 		  "  -7, --7bit              generate 7-bit scanner\n"
 		  "  -8, --8bit              generate 8-bit scanner\n"
+		  "      --16bit             generate 16-bit scanner\n"
 		  "      --utf8              encode all patterns as UTF-8\n"
+		  "      --utf16             encode all patterns as UTF-16\n"
 		  "  -B, --batch             generate batch scanner (opposite of -I)\n"
 		  "  -i, --case-insensitive  ignore case in patterns\n"
 		  "  -l, --lex-compat        maximal compatibility with original lex\n"
