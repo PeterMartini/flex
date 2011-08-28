@@ -36,6 +36,33 @@
 #include "charclass.h"
 #include "parse.h"
 
+static void
+sf_diff (const int cur, scanflags_t * added, scanflags_t * removed)
+{
+	int i = 0, max = 8 * sizeof(scanflags_t), prev = cur - 1;
+
+	scanflags_t mask, unset;
+
+	if (cur > 1) {
+		const scanflags_t unset = ~ _sf_stk[prev];
+		for (i = 0; i < max; i++) {
+			mask = 1 << i;
+			*added |= ((_sf_stk[cur] & mask) & (unset & mask));
+		}
+		for (i = 0; i < max; i++ ) {
+			mask = 1 << i;
+			*removed |= ((_sf_stk[prev] & mask) & (_sf_stk[cur] ^ mask));
+		}
+	} else {
+		*added = _sf_stk[cur];
+		*removed = ~ *added;
+		if (*added & _SF_UNICODE) {
+			*removed &= ~_SF_UNICODE;
+		} else {
+			*removed |= _SF_UNICODE;
+		}
+	}
+}
 
 /* yylex - scan for a regular expression token */
 
@@ -43,6 +70,7 @@ int     yylex ()
 {
 	int     toktype;
 	static int beglin = false;
+	static int group = 0;
 	extern char *yytext;
 
 	if (eofseen)
@@ -69,7 +97,32 @@ int     yylex ()
 			beglin = 0;
 		}
 
+		if (group) {
+			scanflags_t added = 0, removed = 0;
+			sf_diff (group, &added, &removed);
+			if (added || removed) {
+				(void) putc('?', stderr);
+				if (added & _SF_UNICODE) (void) putc('u', stderr);
+				if (added & _SF_DOT_ALL) (void) putc('s', stderr);
+				if (added & _SF_CASE_INS) (void) putc('i', stderr);
+				if (added & _SF_SKIP_WS) (void) putc('x', stderr);
+				if (removed) {
+					(void) putc('-', stderr);
+					if (removed & _SF_SKIP_WS) (void) putc('x', stderr);
+					if (removed & _SF_CASE_INS) (void) putc('i', stderr);
+					if (removed & _SF_DOT_ALL) (void) putc('s', stderr);
+					/* _SF_UNICODE is actually multiple bits */
+					if (removed & _SF_UNICODE) (void) putc('u', stderr);
+				}
+				(void) putc(':', stderr);
+			}
+			group = 0;
+		}
+
 		switch (toktype) {
+		case '(':
+			if ( ! ( lex_compat || posix_compat) )
+				group = _sf_top_ix;
 		case '<':
 		case '>':
 		case '^':
@@ -80,7 +133,6 @@ int     yylex ()
 		case '{':
 		case '}':
 		case '|':
-		case '(':
 		case ')':
 		case '-':
 		case '/':
